@@ -65,6 +65,7 @@ int fencrypt_m(unsigned short threads, const char* _fi, const char* _fo, const c
 */
 int pencrypt(FILE* _ko);
 
+
 //Decryption
 
 /**

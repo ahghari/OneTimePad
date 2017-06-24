@@ -126,6 +126,7 @@ int fencrypt_m(unsigned short threads, const char* _fi, const char* _fo, const c
 		DWORD res = WaitForMultipleObjects((DWORD)threads, &thrds, TRUE, INFINITE);
 		if (res != WAIT_OBJECT_0) {
 			printf("\nFATAL: One or more worker thread(s) unsuccessful, encryption failed!\n ");
+			return 0;
 		}
 #endif
 		fwrite(cache->data, sizeof(unsigned char), cache->size, __fo);
@@ -271,6 +272,7 @@ int fdecrypt_m(unsigned short threads, const char* _fi, const char* _ki, const c
 			DWORD res = WaitForMultipleObjects((DWORD)threads, &thrds, TRUE, INFINITE);
 			if (res != WAIT_OBJECT_0) {
 				printf("\nFATAL: One or more worker thread(s) unsuccessful, decryption failed!\n ");
+				return 0;
 			}
 #endif
 			fwrite(cache->data, sizeof(unsigned char), cache->size, __fo);

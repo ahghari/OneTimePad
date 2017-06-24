@@ -27,18 +27,22 @@ const char* VERSION_SHORT = "-v";
 const char* _VERSION_ = "1.0.1";
 const char* STD_KEY_FILENAME = "otpkey.bin";
 
-const int IF_TAG = 0x01;
-const int OF_TAG = 0x02;
-const int IK_TAG = 0x03;
-const int OK_TAG = 0x04;
-const int SK_TAG = 0x05;
+const short IF_TAG = 0x01;
+const short OF_TAG = 0x02;
+const short IK_TAG = 0x03;
+const short OK_TAG = 0x04;
+const short SK_TAG = 0x05;
 
 void help(void) {
 	printf("\nUSAGE:\n\nOneTimePad [ACTION] [INPUT FILE] [[KEY FILE]] [OUTPUT FILE]\n\nNote: [KEY FILE] is only mandatory for decryption, if you exclude it\n      for encryption, it will be saved as '%s'!\n\nactions:\n\n-e, --encrypt:     Encrypts the input file and saves it to output file,\n                   key saved as key file or '%s'.\n\n-d, --decrypt:     Decrypts an encrypted input file with the key file\n                   and saves the result as output file.\n\n-ep, --enpipe:     Encrypts stdin input and sends it to stdout,\n                   key saved as key file or '%s'.\n\n-dp, --depipe:     Decrypts the stdin input with the key file\n                   and sends it to stdout.\n\n-v, --version:     Prints the release version of OneTimePad.\n\n-h, --help:        Shows usage information.\n\n", STD_KEY_FILENAME, STD_KEY_FILENAME, STD_KEY_FILENAME);
 }
 
 char* errMessage(const short ftag, const char* fpath) {
-	char* res = calloc(0x100, sizeof(char));
+	char* res;
+	if(fpath != NULL)
+		res = calloc(0x7F + strlen(fpath), sizeof(char));
+	else
+		res = calloc(0x7F, sizeof(char));
 	switch (ftag) {
 	case 0x05:
 		strcat(res, "ERROR: Unable to create standard key file in current directory, try again as superuser!");
@@ -51,7 +55,7 @@ char* errMessage(const short ftag, const char* fpath) {
 	case 0x03:
 		strcat(res, "ERROR: Key file '");
 		strcat(res, fpath);
-		strcat(res, "' does not exist or is not accessable!");
+		strcat(res, "' does not exist or is not accessible!");
 		break;
 	case 0x02:
 		strcat(res, "ERROR: Unable to create output file '");
@@ -61,7 +65,7 @@ char* errMessage(const short ftag, const char* fpath) {
 	case 0x01:
 		strcat(res, "ERROR: Input file '");
 		strcat(res, fpath);
-		strcat(res, "' does not exist or is not accessable!");
+		strcat(res, "' does not exist or is not accessible!");
 		break;
 	}
 	return res;
@@ -152,7 +156,6 @@ int main(int argc, char* argv[])
 					fclose(fi);
 					free(err);
 					return EXIT_FAILURE;
-
 				}
 				ko = fopen(STD_KEY_FILENAME, WRITE);
 				if (ko == NULL) {
@@ -210,6 +213,9 @@ int main(int argc, char* argv[])
 					free(err);
 					return EXIT_FAILURE;
 				}
+				fclose(fi);
+				fclose(fo);
+				fclose(ko);
 				printf("\nEncrypting......");
 				fflush(stdout);
 				if (fencrypt_m((unsigned short)THREADS, argv[2], argv[4], argv[3])) {
@@ -259,6 +265,7 @@ int main(int argc, char* argv[])
 				if (fdecrypt_m((unsigned short)THREADS, argv[2], argv[3], argv[4])) {
 					printf("done\n");
 					printf("\nFile '%s' successfully decrypted to '%s'!\n\n", argv[2], argv[4]);
+					return EXIT_SUCCESS;
 				}
 				else {
 					printf("failed!\n\n");
